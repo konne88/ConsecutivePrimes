@@ -1,7 +1,7 @@
 #ifndef PRIMES_SIMPLE_H_
 #define PRIMES_SIMPLE_H_
 
-#include "PrimesDirectAccessArray.h"
+#include "PrimesDirectAccessArray.hpp"
 
 template<class PrimeType, class ArrayType>
 class PrimesSimple : public PrimesDirectAccessArray<PrimeType, ArrayType> {

@@ -3,9 +3,9 @@
 #include <boost/cstdint.hpp>
 
 #include "PrimeTemplates.hpp"
-#include "PrimesSimple.h"
-#include "PrimesCacheBit.h"
-#include "HardwareSpecs.h"
+#include "PrimesSimple.hpp"
+#include "PrimesCacheBit.hpp"
+#include "HardwareSpecs.hpp"
 
 using namespace std;
 
@@ -39,11 +39,9 @@ int main() {
 
 	const uint64_t count = 25;
 
-	typedef Primes<uint64_t,count> T;
-
 	int sum = 0;
 	for(uint64_t i=0 ; i<count ; ++i) {
-		sum += T::array[i]; //Primes<uint64_t,count>::array[i];
+		sum += Primes<uint64_t,count>::array[i];
 	}
 	assert(sum == 1060);
 

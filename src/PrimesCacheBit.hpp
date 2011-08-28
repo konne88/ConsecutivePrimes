@@ -8,10 +8,8 @@
 #include <vector>
 
 #include "Math.hpp"
-#include "PrimesList.h"
-#include "CompressedBitArray.h"
-
-// 8:22
+#include "PrimesList.hpp"
+#include "CompressedBitArray.hpp"
 
 typedef PrimesList<int> test;
 

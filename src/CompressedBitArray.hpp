@@ -9,7 +9,7 @@
 
 // define NDEBUG to disable assertions
 
-#include "PrimesList.h"
+#include "PrimesList.hpp"
 
 /* This class represents a check list (bit array) for
  * each odd number greater or equal then a certain offset.

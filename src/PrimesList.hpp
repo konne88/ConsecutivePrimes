@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "ConsecutivePrimes.h"
+#include "ConsecutivePrimes.hpp"
 
 /*
  * This class describes how the resulting prime numbers of

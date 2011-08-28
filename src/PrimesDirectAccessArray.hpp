@@ -1,7 +1,7 @@
 #ifndef PRIMES_DIRECT_ACCESS_ARRAY_H_
 #define PRIMES_DIRECT_ACCESS_ARRAY_H_
 
-#include "ConsecutivePrimes.h"
+#include "ConsecutivePrimes.hpp"
 
 /*
  * This class describes how the check list in the algorithm
