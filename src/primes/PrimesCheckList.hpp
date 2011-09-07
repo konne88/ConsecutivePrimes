@@ -12,7 +12,7 @@
  * type PrimeType.
  */
 template<class PrimeType>
-class PrimesList : public ConsecutivePrimes<PrimeType> {
+class PrimesCheckList : public ConsecutivePrimes<PrimeType> {
 protected:
 	class PrimesListIter : public ConsecutivePrimes<PrimeType>::PrimeIter {
 	protected:

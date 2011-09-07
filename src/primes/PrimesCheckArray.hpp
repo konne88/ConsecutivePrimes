@@ -21,7 +21,7 @@
  * If element is set to 1, it is not a prime number.
  */
 template<class PrimeType, class ArrayType>
-class PrimesDirectAccessArray : public ConsecutivePrimes<PrimeType> {
+class PrimesCheckArray : public ConsecutivePrimes<PrimeType> {
 protected:
 	ArrayType* getPrimeArray(PrimeType upperBound) {
 		return (ArrayType*)calloc(upperBound+1,sizeof(ArrayType));

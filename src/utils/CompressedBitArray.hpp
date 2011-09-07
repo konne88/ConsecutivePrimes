@@ -9,8 +9,6 @@
 
 // define NDEBUG to disable assertions
 
-#include "PrimesList.hpp"
-
 /* This class represents a check list (bit array) for
  * each odd number greater or equal then a certain offset.
  *
@@ -60,7 +58,7 @@
  */
 
 
-template<class OffsetType, class Section, uint64_t sections, class Hardware>
+template<class OffsetType, class Section, uint64_t sections, class Hardware, uint64_t startNumber>
 class CompressedBitArray {
 private:
 	static const uint64_t bitsPerByte = Hardware::bitsPerByte;
@@ -101,16 +99,16 @@ public:
 		assert((arrays*alignment)+firstNumber == newUpperBound);
 	}
 */
-	OffsetType firstNumber() {
+	OffsetType firstNumber() const {
 		return offset;
 	}
 
-	OffsetType lastNumber() {
+	OffsetType lastNumber() const {
 		return offset + numbersPerArray - 2;
 	}
 
-	CompressedBitArray(OffsetType firstNumber)
-	: offset(firstNumber)
+	CompressedBitArray()
+	: offset(startNumber)
 	{
 		assert(isOdd(offset));
 
@@ -131,11 +129,30 @@ public:
 		offset += numbersPerArray;
 	}
 
-	Section& getSection(Section i) {
+	void incrementOffset(OffsetType times) {
+		memset(array,0,bytesPerArray);
+		offset += numbersPerArray*times;
+	}
+
+	/**
+	 * calculate how many compressed bit arrays we need in order to store all numbers x
+	 * startNumber <= x <= number
+	 */
+	static OffsetType mapNumberToArray(OffsetType number) {
+		OffsetType arrays = (number-(startNumber-2)+numbersPerArray-1)/numbersPerArray;
+
+		// checked for correctness
+		assert(arrays*numbersPerArray+(startNumber-2) >= number);
+		assert((arrays-1)*numbersPerArray+(startNumber-2) < number);
+
+		return arrays;
+	}
+
+	Section& getSection(Section i) const {
 		return array[i];
 	}
 
-	void mapNumber(OffsetType number, Index& section, Index& sectionBit){
+	void mapNumber(OffsetType number, Index& section, Index& sectionBit) const {
 		assert(isOdd(number));
 		assert(number >= firstNumber());
 		assert(number <= lastNumber());
@@ -153,7 +170,7 @@ public:
 		assert(offset + (section*bitsPerSection + sectionBit)*2 == number);
 	}
 
-	OffsetType unmapNumber(Index section, Index sectionBit){
+	OffsetType unmapNumber(Index section, Index sectionBit) const {
 		OffsetType num = offset + (section*bitsPerSection + sectionBit)*2;
 
 		Index section2;
@@ -176,7 +193,7 @@ public:
 		assert(testBit(section,sectionBit) == value);
 	}
 
-	bool testBit(Index section, Index sectionBit) {
+	bool testBit(Index section, Index sectionBit) const {
 		return getSection(section) & (((Section)1)<<sectionBit);
 	}
 };

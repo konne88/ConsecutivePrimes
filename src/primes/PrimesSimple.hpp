@@ -1,10 +1,10 @@
 #ifndef PRIMES_SIMPLE_H_
 #define PRIMES_SIMPLE_H_
 
-#include "PrimesDirectAccessArray.hpp"
+#include "PrimesCheckArray.hpp"
 
 template<class PrimeType, class ArrayType>
-class PrimesSimple : public PrimesDirectAccessArray<PrimeType, ArrayType> {
+class PrimesSimple : public PrimesCheckArray<PrimeType, ArrayType> {
 public:
 	typename ConsecutivePrimes<PrimeType>::PrimeIter* getPrimes(PrimeType upperBound) {
 		PrimeType a;
@@ -30,7 +30,7 @@ public:
 			}
 		}
 
-		return new typename PrimesDirectAccessArray<PrimeType, ArrayType>::PrimesByteArrayIter(prime,upperBound,size);
+		return new typename PrimesCheckArray<PrimeType, ArrayType>::PrimesByteArrayIter(prime,upperBound,size);
 	}
 };
 

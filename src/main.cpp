@@ -2,10 +2,11 @@
 #include <time.h>
 #include <boost/cstdint.hpp>
 
-#include "PrimeTemplates.hpp"
-#include "PrimesSimple.hpp"
-#include "PrimesCacheBit.hpp"
-#include "HardwareSpecs.hpp"
+#include "utils/PrimeTemplates.hpp"
+#include "utils/HardwareSpecs.hpp"
+#include "primes/PrimesSimple.hpp"
+#include "primes/PrimesCacheBit.hpp"
+#include "primes/PrimesThreaded.hpp"
 
 using namespace std;
 
@@ -36,6 +37,7 @@ int main() {
 	assert(isPrime<7>() == true);
 	assert(isPrime<8>() == false);
 	assert(isPrime<9>() == false);
+
 
 	const uint64_t count = 25;
 
@@ -72,14 +74,12 @@ int main() {
 
 #endif
 
-
-
 	typedef HardwareSpecs<1024*(1024+512)> RealHardware;
 
 	clock_t start = clock();
 
-	ConsecutivePrimes<PrimeType>* cp = new PrimesCacheBit<PrimeType,RealHardware>();
-	ConsecutivePrimes<PrimeType>::PrimeIter* iter = cp->getPrimes(100000001*10);
+	ConsecutivePrimes<PrimeType>* cp = new PrimesThreaded<PrimeType,RealHardware>();
+	ConsecutivePrimes<PrimeType>::PrimeIter* iter = cp->getPrimes(100000001);
 
 	std::cerr << "calc done in " << ((double)clock()-start)/CLOCKS_PER_SEC << "s\n";
 

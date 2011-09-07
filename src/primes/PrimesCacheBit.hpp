@@ -7,11 +7,11 @@
 #include <new>
 #include <vector>
 
-#include "Math.hpp"
-#include "PrimesList.hpp"
-#include "CompressedBitArray.hpp"
+#include "../utils/Math.hpp"
+#include "../utils/CompressedBitArray.hpp"
+#include "PrimesCheckList.hpp"
 
-typedef PrimesList<int> test;
+typedef PrimesCheckList<int> test;
 
 /*
  * This algorithm finds consecutive primes using the algorithm
@@ -82,7 +82,7 @@ typedef PrimesList<int> test;
  *
  */
 template<class PrimeType, class Hardware>
-class PrimesCacheBit : public PrimesList<PrimeType> {
+class PrimesCacheBit : public PrimesCheckList<PrimeType> {
 private:
 	typedef typename Hardware::RegisterType Section;
 	static const uint64_t bitsPerByte = Hardware::bitsPerByte;
@@ -116,7 +116,7 @@ private:
 	 */
 	static const PrimeType firstNumber = CeilToOdd<IntSqrt<numbersPerCache*2>::result>::result;
 
-	typedef CompressedBitArray<PrimeType, Section, sectionsPerCache, Hardware> BitArray;
+	typedef CompressedBitArray<PrimeType, Section, sectionsPerCache, Hardware,firstNumber> BitArray;
 	typedef typename BitArray::Index Index;
 	typedef std::vector<PrimeType> PrimeList;
 
@@ -125,7 +125,7 @@ public:
 		assert(bytesPerCache >= bytesPerSection);
 		assert(bytesPerCache/bytesPerSection*bytesPerSection == bytesPerCache);	// cache must be multiple of section
 
-		BitArray sieve(firstNumber);
+		BitArray sieve;
 		PrimeList* primeList = new PrimeList();
 
 		// calculate the primes in the first cache with a different method
@@ -229,7 +229,7 @@ public:
 
 			primeList->insert(primeList->begin(),2);
 		}
-		return new typename PrimesList<PrimeType>::PrimesListIter(primeList,upperBound);
+		return new typename PrimesCheckList<PrimeType>::PrimesListIter(primeList,upperBound);
 	}
 };
 
