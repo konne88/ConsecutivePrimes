@@ -16,6 +16,9 @@ public:
 	typename ConsecutivePrimes<PrimeType>::PrimeIter* getPrimes(PrimeType upperBound) {
 		typename Self::PrimeList* primeList = Self::createPrehasePrimes();
 
+		// wrap the primeList inside of a LinkedPrimeLists
+		typename Self::LinkedPrimeLists* primeLists = new typename Self::LinkedPrimeLists(primeList);
+
 		// if upperBound is lower than firstNumber
 		// all primes will have been calculated with the first method already
 		if(upperBound >= Self::firstNumber){
@@ -23,7 +26,7 @@ public:
 			PrimeType caches = Self::Sieve::mapNumberToArray(upperBound);
 			typename Self::Sieve sieve;
 
-//#ifndef NDEBUG
+#if LOGLEVEL >= 1
 			std::cerr
 			<< "-- init --\n"
 			<< "bound:        "<< upperBound  << "\n"
@@ -32,19 +35,19 @@ public:
 			<< "nums/cache:   "<< Self::numbersPerCache << "\n"
 			<< "cachesize:    "<< Self::bytesPerCache << "\n"
 			<< "sctons/cache: "<< Self::sectionsPerCache << '\n';
-//#endif
+#endif
 			primeList->erase(primeList->begin());
 
 			for(PrimeType cache=0 ; cache<caches ; ++cache){
 				sieve.clearArray();
-				crossOutSieve(sieve,*primeList);
+				crossOutSieve(sieve,*primeLists);
 				addSievePrimesToList(sieve,*primeList);
 				sieve.incrementOffset();
 			}
 
 			primeList->insert(primeList->begin(),2);
 		}
-		return new typename PrimesCheckList<PrimeType>::PrimesListIter(primeList,upperBound);
+		return new typename PrimesCheckList<PrimeType>::PrimesListIter(primeLists,upperBound);
 	}
 };
 

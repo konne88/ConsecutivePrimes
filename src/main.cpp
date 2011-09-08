@@ -2,12 +2,13 @@
 #include <time.h>
 #include <boost/cstdint.hpp>
 
+#define LOGLEVEL 1
+
 #include "utils/PrimeTemplates.hpp"
 #include "utils/HardwareSpecs.hpp"
 #include "primes/PrimesSimple.hpp"
 #include "primes/PrimesSingleCore.hpp"
 #include "primes/PrimesThreaded.hpp"
-#include "primes/PrimesFast.hpp"
 
 using namespace std;
 
@@ -19,7 +20,7 @@ typedef uint64_t PrimeType;
 
 int main() {
 #ifndef NDEBUG
-	typedef HardwareSpecs<16> Hardware;
+	typedef HardwareSpecs<32,32> Hardware;
 
 	assert(IntSqrt<9>::result == 3);
 	assert(IntSqrt<15>::result == 3);
@@ -68,8 +69,7 @@ int main() {
 			const PrimeType& prime = iters[0]->next();
 			continues = prime;	// quit once all primes are 0
 			for(int i=1 ; i<imps ; ++i) {
-				const PrimeType p = iters[i]->next();
-				assert(prime == p);
+				assert(prime == iters[i]->next());
 			}
 		} while(continues);
 
@@ -79,21 +79,22 @@ int main() {
 		}
 	}
 
+
+	std::cerr << "TESTS COMPLETED\n";
 #endif
 
-	typedef HardwareSpecs<1024*1024*3,1024*1024*3/2> RealHardware;
+	typedef HardwareSpecs<1024*1024*3/2,1024*1024*3/2> RealHardware;
 
-	const int imps = 3;
+	const int imps = 2;
 	ConsecutivePrimes<PrimeType>* primes[imps];
 	primes[0] = new PrimesSingleCore<PrimeType,RealHardware>();
 	primes[1] = new PrimesThreaded<PrimeType,RealHardware>();
-	primes[2] = new PrimesFast<PrimeType,RealHardware>();
 	for(int s=0 ; s<2 ; ++s){
 		for(int i=0 ; i<imps ; ++i) {
 			std::cerr << "=================================\n";
 
 			clock_t start = clock();
-			ConsecutivePrimes<PrimeType>::PrimeIter* iter = primes[i]->getPrimes(100000001);
+			ConsecutivePrimes<PrimeType>::PrimeIter* iter = primes[i]->getPrimes(1000000001);
 			std::cerr << "calc done in " << ((double)clock()-start)/CLOCKS_PER_SEC << "s\n";
 
 			PrimeType prime = 0;
@@ -108,7 +109,7 @@ int main() {
 		}
 	}
 
-	std::cerr << "TERMINATE";
+	std::cerr << "TERMINATED\n";
 
 	return 0;
 }

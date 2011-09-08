@@ -92,14 +92,16 @@
  * http://www.technovelty.org/code/arch/micro-analysis.html
  * http://openmp.org/wp/
  *
- * 					// opcontrol --start --session-dir=.
-					// opcontrol --shutdown
-					// opannotate --source --output-dir=annotated --session-dir=. Prime
-					// opannotate --source --assembly --session-dir=. Prime
-					// opreport --session-dir=. -l Prime | less
-					// valgrind --leak-check=full ./Prime
-					// valgrind --tool=cachegrind ./Prime
-
+ *
+ * opcontrol --init
+ * opcontrol --no-vmlinux
+ * opcontrol --start --session-dir=.
+ * opcontrol --shutdown
+ * opannotate --source --output-dir=annotated --session-dir=. Prime
+ * opannotate --source --assembly --session-dir=. Prime
+ * report --session-dir=. -l Prime | less
+ * valgrind --leak-check=full ./Prime
+ * valgrind --tool=cachegrind ./Prime
 
 					// INST_RETIRED_ANY_P
 					// CPU_CLK_UNHALTED
@@ -107,6 +109,7 @@
  */
 template<class PrimeType, class Hardware, int cacheSize>
 class PrimesCacheBit : public PrimesCheckList<PrimeType> {
+typedef PrimesCacheBit Self;
 protected:
 	typedef typename Hardware::RegisterType Section;
 	static const uint64_t bitsPerByte = Hardware::bitsPerByte;
@@ -127,10 +130,9 @@ protected:
 
 	typedef CompressedBitArray<PrimeType, Section, sectionsPerCache, Hardware,firstNumber> Sieve;
 	typedef typename Sieve::Index Index;
-	typedef std::vector<PrimeType> PrimeList;		// FIXME
 
-	static PrimeList* createPrehasePrimes() {
-		PrimeList* primeList = new PrimeList();
+	static typename Self::PrimeList* createPrehasePrimes() {
+		typename Self::PrimeList* primeList = new typename Self::PrimeList();
 
 		// calculate the primes in the first cache with a different method
 		ConsecutivePrimes<PrimeType>* cp = new PrimesSimple<PrimeType,char>();
@@ -145,42 +147,46 @@ protected:
 		return primeList;
 	}
 
-	static void crossOutSieve(Sieve& sieve,const PrimeList& primeList) {
-		// cross out primes from the list
-		typename PrimeList::const_iterator iter = primeList.begin();
+	static void crossOutSieve(Sieve& sieve, const typename Self::LinkedPrimeLists& primeLists) {
 		PrimeType sqrt = intSqrt(sieve.lastNumber());
+		const typename Self::LinkedPrimeLists::Element* ele = primeLists.begin();
 
-		for( ; ; ++iter){
-			const PrimeType& prime = *iter;
+		do {
+			// cross out primes from the list
+			typename Self::PrimeList::const_iterator iter = ele->current->begin();
 
-			if(prime > sqrt){
-				break;
-			}
+			for( ; iter != ele->current->end() ; ++iter){
+				const PrimeType& prime = *iter;
 
-			// for all multiples of the prime that matter
-			// TODO saw that this line takes up like 75% of the time
-			// check if I get better results not using prime*prime
+				if(prime > sqrt){
+					return;
+				}
 
-//					(sieve.firstNumber()+prime-1)/prime
+				// for all multiples of the prime that matter
+				// TODO saw that this line takes up like 75% of the time
+				// check if I get better results not using prime*prime
 
-			PrimeType pp = ((sieve.firstNumber()+prime-((PrimeType)1))/prime)*prime;
-			pp += prime * (pp % 2==0);
+	//					(sieve.firstNumber()+prime-1)/prime
 
-			for(PrimeType multiple=pp
-					//std::max(pp,prime*prime)
-//							prime*prime
-					;
-				multiple<=sieve.lastNumber();
-				multiple+=prime+prime)
-			{
-				if(multiple >= sieve.firstNumber()) {
-					sieve.setBit(multiple,true);
+				PrimeType pp = ((sieve.firstNumber()+prime-((PrimeType)1))/prime)*prime;
+				pp += prime * (pp % 2==0);
+
+				for(PrimeType multiple=pp
+						//std::max(pp,prime*prime)
+	//							prime*prime
+						;
+					multiple<=sieve.lastNumber();
+					multiple+=prime+prime)
+				{
+					if(multiple >= sieve.firstNumber()) {
+						sieve.setBit(multiple,true);
+					}
 				}
 			}
-		}
+		} while((ele = ele->next));
 	}
 
-	static void addSievePrimesToList(const Sieve& sieve, PrimeList& primeList) {
+	static void addSievePrimesToList(const Sieve& sieve, typename Self::PrimeList& primeList) {
 		// add found numbers to the prime list
 		for(Index section=0 ; section<sectionsPerCache ; ++section){
 			for(Index sectionBit=0 ; sectionBit<bitsPerSection ; ++sectionBit) {
