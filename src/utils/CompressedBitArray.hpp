@@ -115,8 +115,6 @@ public:
 		if(posix_memalign((void**)&array,getpagesize(),bytesPerArray) != 0){
 			throw std::bad_alloc();
 		}
-
-		memset(array,0,bytesPerArray);
 	}
 
 	~CompressedBitArray()
@@ -125,13 +123,15 @@ public:
 	}
 
 	void incrementOffset() {
-		memset(array,0,bytesPerArray);
 		offset += numbersPerArray;
 	}
 
-	void incrementOffset(OffsetType times) {
+	void setArrayOffset(OffsetType times) {
+		offset = startNumber+numbersPerArray*times;
+	}
+
+	void clearArray() {
 		memset(array,0,bytesPerArray);
-		offset += numbersPerArray*times;
 	}
 
 	/**

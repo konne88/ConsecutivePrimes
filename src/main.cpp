@@ -5,8 +5,9 @@
 #include "utils/PrimeTemplates.hpp"
 #include "utils/HardwareSpecs.hpp"
 #include "primes/PrimesSimple.hpp"
-#include "primes/PrimesCacheBit.hpp"
+#include "primes/PrimesSingleCore.hpp"
 #include "primes/PrimesThreaded.hpp"
+#include "primes/PrimesFast.hpp"
 
 using namespace std;
 
@@ -18,7 +19,7 @@ typedef uint64_t PrimeType;
 
 int main() {
 #ifndef NDEBUG
-	typedef HardwareSpecs<8> Hardware;
+	typedef HardwareSpecs<16> Hardware;
 
 	assert(IntSqrt<9>::result == 3);
 	assert(IntSqrt<15>::result == 3);
@@ -38,7 +39,6 @@ int main() {
 	assert(isPrime<8>() == false);
 	assert(isPrime<9>() == false);
 
-
 	const uint64_t count = 25;
 
 	int sum = 0;
@@ -53,49 +53,62 @@ int main() {
 	for(PrimeType i=0 ; i<8 ; ++i){
 		PrimeType n = nums[i];
 		std::cerr << "==================== " << n << '\n';
+		const int imps = 3;
+		ConsecutivePrimes<PrimeType>* primes[imps];
+		ConsecutivePrimes<PrimeType>::PrimeIter* iters[imps];
+		primes[0] = new PrimesSingleCore<PrimeType,Hardware>();
+		primes[1] = new PrimesThreaded<PrimeType,Hardware>();
+		primes[2] = new PrimesSimple<PrimeType,char>();
+		for(int i=0 ; i<imps ; ++i) {
+			iters[i] = primes[i]->getPrimes(n);
+		}
 
-		ConsecutivePrimes<PrimeType>* cp1 = new PrimesCacheBit<PrimeType,Hardware>();
-		ConsecutivePrimes<PrimeType>* cp2 = new PrimesSimple<PrimeType,char>();
-		ConsecutivePrimes<PrimeType>::PrimeIter* iter1 = cp1->getPrimes(n);
-		ConsecutivePrimes<PrimeType>::PrimeIter* iter2 = cp2->getPrimes(n);
-		PrimeType prime1 = 0;
-		PrimeType prime2 = 0;
+		bool continues;
 		do {
-			prime1 = iter1->next();
-			prime2 = iter2->next();
-			assert(prime1 == prime2);
-		} while(prime1 != 0);
+			const PrimeType& prime = iters[0]->next();
+			continues = prime;	// quit once all primes are 0
+			for(int i=1 ; i<imps ; ++i) {
+				const PrimeType p = iters[i]->next();
+				assert(prime == p);
+			}
+		} while(continues);
 
-		delete cp1;
-		delete cp2;
-		delete iter1;
-		delete iter2;
+		for(int i=0 ; i<imps ; ++i) {
+			delete iters[i];
+			delete primes[i];
+		}
 	}
 
 #endif
 
-	typedef HardwareSpecs<1024*(1024+512)> RealHardware;
+	typedef HardwareSpecs<1024*1024*3,1024*1024*3/2> RealHardware;
 
-	clock_t start = clock();
+	const int imps = 3;
+	ConsecutivePrimes<PrimeType>* primes[imps];
+	primes[0] = new PrimesSingleCore<PrimeType,RealHardware>();
+	primes[1] = new PrimesThreaded<PrimeType,RealHardware>();
+	primes[2] = new PrimesFast<PrimeType,RealHardware>();
+	for(int s=0 ; s<2 ; ++s){
+		for(int i=0 ; i<imps ; ++i) {
+			std::cerr << "=================================\n";
 
-	ConsecutivePrimes<PrimeType>* cp = new PrimesThreaded<PrimeType,RealHardware>();
-	ConsecutivePrimes<PrimeType>::PrimeIter* iter = cp->getPrimes(100000001);
+			clock_t start = clock();
+			ConsecutivePrimes<PrimeType>::PrimeIter* iter = primes[i]->getPrimes(100000001);
+			std::cerr << "calc done in " << ((double)clock()-start)/CLOCKS_PER_SEC << "s\n";
 
-	std::cerr << "calc done in " << ((double)clock()-start)/CLOCKS_PER_SEC << "s\n";
+			PrimeType prime = 0;
+			uint64_t x = -1;
+			do {
+				prime = iter->next();
+				++x;
+			} while(prime != 0);
+			std::cerr << "primes: " << x << '\n';
 
-	PrimeType prime = 0;
-	uint64_t i = -1;
-	do {
-		prime = iter->next();
-		++i;
-	} while(prime != 0);
-
-	std::cerr << "primes: " << i << '\n';
+			delete iter;
+		}
+	}
 
 	std::cerr << "TERMINATE";
-
-	delete cp;
-	delete iter;
 
 	return 0;
 }
